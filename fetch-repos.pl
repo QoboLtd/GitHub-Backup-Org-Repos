@@ -26,10 +26,18 @@ if ($dest) {
 
 my $github = Net::GitHub->new( 'version' => 3, 'login' => $git_username, 'pass' => $git_password );
 my @orgs = $github->org->orgs;
+# Pagination
+while ($github->org->has_next_page) {
+	push @orgs, $github->org->next_page;
+}
 foreach my $org (@orgs) {
 	print 'Fetching repos for ' . $org->{'login'} . "\n" if $debug;
 	ensureFolder($dest . '/' . $org->{'login'});
 	my @repos = $github->repos->list_org($org->{'login'});
+	# Pagination
+	while ($github->repos->has_next_page) {
+		push @repos, $github->repos->next_page;
+	}
 	foreach my $repo (@repos) {
 		my $clone_url = $repo->{'clone_url'};
 		my $dest_dir = $clone_url;
